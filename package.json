@@ -1,0 +1,54 @@
+{
+  "name": "loader",
+  "version": "0.0.0",
+  "description": "Loader",
+  "license": "BSD-3-Clause",
+  "main": "lib/loader.js",
+  "homepage": "https://github.com/jkrems/loader",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jkrems/loader"
+  },
+  "bugs": {
+    "url": "https://github.com/jkrems/loader/issues"
+  },
+  "scripts": {
+    "pretest": "eslint lib test",
+    "test": "mocha",
+    "posttest": "nlm verify"
+  },
+  "engines": {
+    "yarn": "0.0.0"
+  },
+  "nlm": {
+    "license": {
+      "files": [
+        "lib"
+      ]
+    }
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "assertive": "^2.1.0",
+    "eslint": "^4.7.1",
+    "eslint-config-groupon": "^6.0.0",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-mocha": "^4.12.1",
+    "eslint-plugin-node": "^5.1.1",
+    "eslint-plugin-prettier": "^2.2.0",
+    "mocha": "^3.1.2",
+    "nlm": "^3.0.0",
+    "prettier": "^1.6.1"
+  },
+  "author": {
+    "name": "Jan Krems",
+    "email": "jan.krems@groupon.com"
+  },
+  "files": [
+    "*.js",
+    "lib"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  }
+}
