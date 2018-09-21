@@ -27,7 +27,10 @@
       ]
     }
   },
-  "dependencies": {},
+  "dependencies": {
+    "bindings": "^1.3.0",
+    "nan": "^2.11.0"
+  },
   "devDependencies": {
     "assertive": "^2.1.0",
     "eslint": "^4.7.1",
