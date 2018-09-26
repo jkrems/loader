@@ -12,26 +12,30 @@ Design constraints, in order of importance:
 ## Usage
 
 ```js
-const Loader = require('@jkrems/loader');
-
-const loader = new Loader();
+const loader = require('@jkrems/loader');
 
 // Overwrite dynamic import to use this loader.
-loader.setDynamicImportCallback();
+loader.enableDynamicImport();
 
-// Add node core URL scheme
+// Add node-core: URL scheme
 loader.registerNodeCoreURLScheme();
+
+// Add cjs-bridge: URL scheme
+loader.registerCJSBridgeScheme();
 
 // Add node core modules to the module map
 loader.registerUnprefixedNodeCoreModules();
 
 // Load an entry point.
-loader
-  .import(`file://${require.resolve('./esm.js')}`)
+import('./esm.js')
   .then(ns => console.log(ns));
 ```
 
 ## Semantics
+
+```js
+import 'bare';
+```
 
 ## Random Ideas
 
