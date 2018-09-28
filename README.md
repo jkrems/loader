@@ -21,6 +21,7 @@ Design constraints, in order of importance:
 - [ ] Define semantics for bare specifiers.
 - [ ] Define "mime type" guards.
 - [ ] Define node core interop.
+- [ ] Define userland CJS interop.
 
 ## Usage
 
