@@ -57,3 +57,7 @@ import 'bare';
 ## Random Ideas
 
 * Use `package-lock.json` to resolve bare specifiers.
+
+## Links
+
+* [`package-name-maps`](https://github.com/domenic/package-name-maps/blob/url-based/README.md#import-urls)
