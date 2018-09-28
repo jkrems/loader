@@ -2,6 +2,6 @@
 
 'use strict';
 
-require('../').enableDynamicImport();
+require('../').enableDynamicImport().enableImportMeta();
 
 import(process.argv[2]).then(console.log, console.error);

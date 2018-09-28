@@ -38,6 +38,7 @@ public:
 
     // CHECK(info[0]->IsString());
     Local<String> url = info[0].As<String>();
+    Nan::Set(that, Nan::New("url").ToLocalChecked(), url);
 
     ModuleWrap* obj = new ModuleWrap();
     obj->Wrap(that);
@@ -227,16 +228,42 @@ public:
     iso->SetHostImportModuleDynamicallyCallback(Loader::ImportModuleDynamically);
   }
 
+  static void InitImportMeta(Local<Context> context,
+                             Local<Module> module,
+                             Local<Object> meta) {
+    Isolate* iso = context->GetIsolate();
+    v8::EscapableHandleScope handle_scope(iso);
+
+    ModuleWrap* obj = ModuleWrap::GetFromModule(module);
+    Local<Value> args[] = {
+      // TODO(jkrems): Provide context or even a richer Module referrer
+      obj->handle(),
+      meta
+    };
+    Nan::Call(import_meta_callback, 2, args).ToLocalChecked();
+  }
+
+  static NAN_METHOD(SetInitImportMetaCallback) {
+    Isolate* iso = info.GetIsolate();
+
+    Local<Value> callback = info[0];
+    import_meta_callback.Reset(callback.As<v8::Function>());
+    iso->SetHostInitializeImportMetaObjectCallback(Loader::InitImportMeta);
+  }
+
 private:
   static Nan::Callback dynamic_import_callback;
+  static Nan::Callback import_meta_callback;
 };
 
 Nan::Callback Loader::dynamic_import_callback;
+Nan::Callback Loader::import_meta_callback;
 
 NAN_MODULE_INIT(InitAll) {
   using v8::FunctionTemplate;
 
-  Nan::Export(target, "SetDynamicImportCallback", Loader::SetDynamicImportCallback);
+  Nan::Export(target, "setDynamicImportCallback", Loader::SetDynamicImportCallback);
+  Nan::Export(target, "setInitImportMetaCallback", Loader::SetInitImportMetaCallback);
 
   Local<String> class_name = Nan::New("ModuleWrap").ToLocalChecked();
   Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(ModuleWrap::New);
