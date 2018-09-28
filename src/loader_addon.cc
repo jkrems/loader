@@ -108,7 +108,7 @@ public:
     return module->module_.Get(context->GetIsolate());
   }
 
-  static NAN_METHOD(Evaluate) {
+  static NAN_METHOD(Instantiate) {
     ModuleWrap* obj = ObjectWrap::Unwrap<ModuleWrap>(info.Holder());
 
     Local<Module> module = Nan::New(obj->module_);
@@ -119,6 +119,7 @@ public:
     // TODO: move into separate functions
     v8::Maybe<bool> ok = module->InstantiateModule(context, ResolveCallback);
     if (!ok.FromMaybe(false)) {
+      printf("Failed to instantiate module\n");
       // CHECK(try_catch.HasCaught());
       // CHECK(!try_catch.Message().IsEmpty());
       // CHECK(!try_catch.Exception().IsEmpty());
@@ -127,6 +128,17 @@ public:
       try_catch.ReThrow();
       return;
     }
+
+    info.GetReturnValue().Set(true);
+  }
+
+  static NAN_METHOD(Evaluate) {
+    ModuleWrap* obj = ObjectWrap::Unwrap<ModuleWrap>(info.Holder());
+
+    Local<Module> module = Nan::New(obj->module_);
+    Local<Context> context = Nan::New(obj->context_);
+
+    TryCatch try_catch(info.GetIsolate());
 
     MaybeLocal<Value> result;
     result = module->Evaluate(context);
@@ -231,6 +243,7 @@ NAN_MODULE_INIT(InitAll) {
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   tpl->SetClassName(class_name);
   Nan::SetPrototypeMethod(tpl, "compile", ModuleWrap::Compile);
+  Nan::SetPrototypeMethod(tpl, "instantiate", ModuleWrap::Instantiate);
   Nan::SetPrototypeMethod(tpl, "evaluate", ModuleWrap::Evaluate);
   Nan::SetPrototypeMethod(tpl, "getNamespace", ModuleWrap::GetNamespace);
   Nan::SetPrototypeMethod(tpl, "getRequests", ModuleWrap::GetRequests);
