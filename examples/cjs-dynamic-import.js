@@ -2,4 +2,4 @@
 
 require('../').enableDynamicImport();
 
-import('./x.js').then(console.log, console.error);
+import('./imports.js').then(console.log, console.error);

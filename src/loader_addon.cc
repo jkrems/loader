@@ -97,7 +97,15 @@ public:
   static MaybeLocal<Module> ResolveCallback(Local<Context> context,
                                                Local<String> specifier,
                                                Local<Module> referrer) {
-    return MaybeLocal<Module>();
+    ModuleWrap* obj = GetFromModule(referrer);
+    Nan::Utf8String specifier_utf8(specifier);
+    std::string specifier_std(*specifier_utf8, specifier_utf8.length());
+
+    Local<Object> resolve_object =
+        obj->resolve_cache_[specifier_std].Get(context->GetIsolate());
+    ModuleWrap* module = ObjectWrap::Unwrap<ModuleWrap>(resolve_object);
+    // TODO: CHECK that module has been compiled at the very least
+    return module->module_.Get(context->GetIsolate());
   }
 
   static NAN_METHOD(Evaluate) {
@@ -139,13 +147,41 @@ public:
     info.GetReturnValue().Set(result);
   }
 
+  static NAN_METHOD(GetRequests) {
+    ModuleWrap* obj = ObjectWrap::Unwrap<ModuleWrap>(info.Holder());
+    Local<Module> module = Nan::New(obj->module_);
+
+    int len = module->GetModuleRequestsLength();
+    Local<v8::Array> requests = Nan::New<v8::Array>(len);
+
+    for (int i = 0; i < len; ++i) {
+      requests->Set(i, module->GetModuleRequest(i));
+    }
+
+    info.GetReturnValue().Set(requests);
+  }
+
+  static NAN_METHOD(ResolveRequest) {
+    ModuleWrap* obj = ObjectWrap::Unwrap<ModuleWrap>(info.Holder());
+
+    // CHECK(info[0]->IsString());
+    Local<String> specifier = info[0].As<String>();
+    Nan::Utf8String specifier_utf8(specifier);
+    std::string specifier_std(*specifier_utf8, specifier_utf8.length());
+
+    // CHECK(info[1]->IsObject());
+    Local<Object> resolved = info[1].As<Object>();
+
+    obj->resolve_cache_[specifier_std].Reset(info.GetIsolate(), resolved);
+  }
+
 private:
   static std::unordered_multimap<int, ModuleWrap*> module_map;
 
   Persistent<v8::Module> module_;
   Persistent<v8::String> url_;
   // bool linked_ = false;
-  // std::unordered_map<std::string, Persistent<v8::Promise>> resolve_cache_;
+  std::unordered_map<std::string, Persistent<v8::Object>> resolve_cache_;
   Persistent<v8::Context> context_;
 };
 std::unordered_multimap<int, ModuleWrap*> ModuleWrap::module_map;
@@ -197,6 +233,8 @@ NAN_MODULE_INIT(InitAll) {
   Nan::SetPrototypeMethod(tpl, "compile", ModuleWrap::Compile);
   Nan::SetPrototypeMethod(tpl, "evaluate", ModuleWrap::Evaluate);
   Nan::SetPrototypeMethod(tpl, "getNamespace", ModuleWrap::GetNamespace);
+  Nan::SetPrototypeMethod(tpl, "getRequests", ModuleWrap::GetRequests);
+  Nan::SetPrototypeMethod(tpl, "resolveRequest", ModuleWrap::ResolveRequest);
   Nan::Set(target, class_name, tpl->GetFunction());
 }
 NODE_MODULE(loader, InitAll)
