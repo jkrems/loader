@@ -5,6 +5,6 @@
 require('../')
   .enableDynamicImport()
   .enableImportMeta()
-  .addPackageJSONToMap(require('../package.json'));
+  .addPackageLockToMap(require('../package-lock.json'));
 
 import(process.argv[2]).then(console.log, console.error);
