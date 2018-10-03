@@ -44,7 +44,7 @@ loader.registerCJSBridgeScheme();
 loader.registerUnprefixedNodeCoreModules();
 
 // Load an entry point.
-import('./esm.js')
+import('./module.mjs')
   .then(ns => console.log(ns));
 ```
 
