@@ -188,6 +188,17 @@ public:
     obj->resolve_cache_[specifier_std].Reset(info.GetIsolate(), resolved);
   }
 
+  static NAN_METHOD(IsResolved) {
+    ModuleWrap* obj = ObjectWrap::Unwrap<ModuleWrap>(info.Holder());
+
+    // CHECK(info[0]->IsString());
+    Local<String> specifier = info[0].As<String>();
+    Nan::Utf8String specifier_utf8(specifier);
+    std::string specifier_std(*specifier_utf8, specifier_utf8.length());
+
+    info.GetReturnValue().Set(Nan::New<v8::Boolean>(!obj->resolve_cache_[specifier_std].IsEmpty()));
+  }
+
 private:
   static std::unordered_multimap<int, ModuleWrap*> module_map;
 
@@ -275,6 +286,7 @@ NAN_MODULE_INIT(InitAll) {
   Nan::SetPrototypeMethod(tpl, "getNamespace", ModuleWrap::GetNamespace);
   Nan::SetPrototypeMethod(tpl, "getRequests", ModuleWrap::GetRequests);
   Nan::SetPrototypeMethod(tpl, "resolveRequest", ModuleWrap::ResolveRequest);
+  Nan::SetPrototypeMethod(tpl, "isResolved", ModuleWrap::IsResolved);
   Nan::Set(target, class_name, tpl->GetFunction());
 }
 NODE_MODULE(loader, InitAll)
