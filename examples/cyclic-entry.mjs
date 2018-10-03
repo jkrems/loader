@@ -1,4 +1,4 @@
-import { double } from './cyclic-other.js';
+import { double } from './cyclic-other.mjs.js';
 
 export function getNumber() {
   return 21;
