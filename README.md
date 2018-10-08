@@ -48,6 +48,16 @@ import('./module.mjs')
   .then(ns => console.log(ns));
 ```
 
+### API
+
+#### `new Module(url: string)`
+
+##### `module.compile(source: string): void`
+
+##### `module.setLazyStaticExports(keys: string[], getValues: () => object): void`
+
+##### `module.evaluate(): any`
+
 ## Semantics
 
 The system is split into 3 separate pieces:
