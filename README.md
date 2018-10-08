@@ -106,7 +106,7 @@ Most implementations will check the `resource.contentType`
 to select the appropriate behavior.
 
 ```ts
-const init: (resource: Resource, target: Module) => void;
+const init: (target: Module, resource: Resource, Module) => void;
 ```
 
 If initialization fails (e.g. because the resource content fails to compile),
