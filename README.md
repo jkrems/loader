@@ -50,9 +50,69 @@ import('./module.mjs')
 
 ## Semantics
 
-```js
-import 'bare';
+The system is split into 3 separate pieces:
+
+1. Module resolution
+1. Resource loading
+1. Module init
+
+### Module Resolution (`resolve`)
+
+Given a `specifier: string` and `referrerURL: string`,
+provide a `url: string` or a set of potential `urls: string[]` of a resource:
+
+```ts
+const resolve: (specifier: string, referrerURL: string) => string | string[];
 ```
+
+If the resolution fails (e.g. because of an invalid URL),
+the function should throw.
+
+### Resource Loading (`load`)
+
+Given a resource `url: string`,
+load the resource content and associated meta data.
+
+```ts
+type Resource = {
+  url: string,
+  contentType: string,
+  // Necessary..?
+  contentTypeParameters?: string,
+  bytes?: Buffer,
+};
+
+const load: (url: string) => Resource;
+```
+
+If loading fails (e.g. because the resource cannot be found),
+the function should throw.
+
+### Module Init (`init`)
+
+Given a `resource: Resource` and a `target: Module` module handle,
+initialize the `target`.
+Most implementations will check the `resource.contentType`
+to select the appropriate behavior.
+
+```ts
+const init: (resource: Resource, target: Module) => void;
+```
+
+If initialization fails (e.g. because the resource content fails to compile),
+the function should throw.
+
+## Internals
+
+* One `Loader` instance per context / global.
+* By default the `Loader` for a context starts out empty.
+* Each `Loader` keeps a map of URL string to `Module`.
+* When a URL is requested that hasn't been loaded already,
+  that process is handed over to a `Job`.
+  The `Job` keeps track of everything that needs to wrap up before the requested
+  module can be returned and provides a `Promise` for its completion.
+* During `Job` execution, the resolve, load and init hooks that have been
+  registered will be called.
 
 ## Random Ideas
 
