@@ -69,7 +69,7 @@ Compile the given `source` as a module.
 The system is split into 3 separate pieces:
 
 1. Module resolution
-1. Resource loading
+1. Resource fetching
 1. Module init
 
 ### Module Resolution (`resolve`)
@@ -84,10 +84,10 @@ const resolve: (specifier: string, referrerURL: string) => string | string[];
 If the resolution fails (e.g. because of an invalid URL),
 the function should throw.
 
-### Resource Loading (`load`)
+### Resource Fetching (`fetch`)
 
 Given a resource `url: string`,
-load the resource content and associated meta data.
+fetch the resource content and associated meta data.
 
 ```ts
 type Resource = {
@@ -98,10 +98,10 @@ type Resource = {
   bytes?: Buffer,
 };
 
-const load: (url: string) => Resource;
+const fetch: (url: string) => Resource;
 ```
 
-If loading fails (e.g. because the resource cannot be found),
+If fetching fails (e.g. because the resource cannot be found),
 the function should throw.
 
 ### Module Init (`init`)
