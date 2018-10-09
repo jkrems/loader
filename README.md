@@ -91,11 +91,10 @@ fetch the resource content and associated meta data.
 
 ```ts
 type Resource = {
-  url: string,
-  contentType: string,
-  // Necessary..?
-  contentTypeParameters?: string,
   bytes?: Buffer,
+  contentType: string,
+  // Needed..?
+  contentTypeParameters?: string,
 };
 
 const fetch: (url: string) => Resource;
@@ -124,11 +123,12 @@ the function should throw.
 * By default the `Loader` for a context starts out empty.
 * Each `Loader` keeps a map of URL string to `Module`.
 * When a URL is requested that hasn't been loaded already,
-  that process is handed over to a `Job`.
-  The `Job` keeps track of everything that needs to wrap up before the requested
-  module can be returned and provides a `Promise` for its completion.
-* During `Job` execution, the resolve, load and init hooks that have been
-  registered will be called.
+  that process is handed over to a `LoadModuleJob`.
+  The `LoadModuleJob` keeps track of everything that needs to wrap up
+  before the requested module can be returned
+  and provides a `Promise` for its completion.
+* During `LoadModuleJob` execution, the `resolve`, `fetch` and `init` hooks
+  of the `Loader` will be called.
 
 ## Random Ideas
 
