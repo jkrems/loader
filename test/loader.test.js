@@ -16,16 +16,15 @@ export const combined = [x, y.default].join(' ');
 `);
       localLoader.fetch = url => {
         return {
-          url,
           bytes:
             url === 'file:///a'
               ? entryCode
               : Buffer.from(`export default ${JSON.stringify(url)}`),
-          contentType: 'application/javascript',
+          contentType: 'text/javascript',
         };
       };
       localLoader.init = (target, resource) => {
-        assert.equal('application/javascript', resource.contentType);
+        assert.equal('text/javascript', resource.contentType);
         target.compile(resource.bytes.toString());
       };
       const a = await localLoader.importFromResolvedURL('file:///a');
@@ -33,6 +32,23 @@ export const combined = [x, y.default].join(' ');
         { combined: 'file:///x file:///y' },
         Object.assign({}, a)
       );
+    });
+
+    it('re-throws if loading the same failing module twice', async () => {
+      const l = new Loader();
+      l.fetch = () => ({
+        contentType: 'text/javascript',
+        bytes: Buffer.from('throw new Error("oops")'),
+      });
+      const firstError = await assert.rejects(
+        l.importFromResolvedURL('file:///failing')
+      );
+      assert.equal('oops', firstError.message);
+
+      const secondError = await assert.rejects(
+        l.importFromResolvedURL('file:///failing')
+      );
+      assert.equal(firstError, secondError);
     });
   });
 });
