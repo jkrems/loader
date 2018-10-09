@@ -22,9 +22,7 @@
   },
   "nlm": {
     "license": {
-      "files": [
-        "lib"
-      ]
+      "files": []
     }
   },
   "dependencies": {
