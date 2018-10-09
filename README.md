@@ -54,7 +54,13 @@ import('./module.mjs')
 
 ##### `module.compile(source: string): void`
 
+Compile the given `source` as a module.
+
 ##### `module.setLazyStaticExports(keys: string[], getValues: () => object): void`
+
+##### `module.setDynamicExports(getExports: () => object): void`
+
+*This is a potential future API.*
 
 ##### `module.evaluate(): any`
 

@@ -117,7 +117,6 @@ public:
 
     TryCatch try_catch(info.GetIsolate());
 
-    // TODO: move into separate functions
     v8::Maybe<bool> ok = module->InstantiateModule(context, ResolveCallback);
     if (!ok.FromMaybe(false)) {
       printf("Failed to instantiate module\n");
@@ -199,6 +198,18 @@ public:
     info.GetReturnValue().Set(Nan::New<v8::Boolean>(!obj->resolve_cache_[specifier_std].IsEmpty()));
   }
 
+  static NAN_METHOD(GetStatus) {
+    ModuleWrap* obj = ObjectWrap::Unwrap<ModuleWrap>(info.Holder());
+
+    Local<Module> module = Nan::New(obj->module_);
+    if (module.IsEmpty()) {
+      info.GetReturnValue().SetNull();
+      return;
+    }
+
+    info.GetReturnValue().Set(module->GetStatus());
+  }
+
 private:
   static std::unordered_multimap<int, ModuleWrap*> module_map;
 
@@ -272,21 +283,45 @@ Nan::Callback Loader::import_meta_callback;
 
 NAN_MODULE_INIT(InitAll) {
   using v8::FunctionTemplate;
+  using Nan::New;
+  using Nan::Set;
+  using Nan::SetPrototypeMethod;
 
   Nan::Export(target, "setDynamicImportCallback", Loader::SetDynamicImportCallback);
   Nan::Export(target, "setInitImportMetaCallback", Loader::SetInitImportMetaCallback);
 
-  Local<String> class_name = Nan::New("ModuleWrap").ToLocalChecked();
-  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(ModuleWrap::New);
-  tpl->InstanceTemplate()->SetInternalFieldCount(1);
+  Local<String> class_name = New("ModuleWrap").ToLocalChecked();
+  Local<FunctionTemplate> tpl = New<FunctionTemplate>(ModuleWrap::New);
   tpl->SetClassName(class_name);
-  Nan::SetPrototypeMethod(tpl, "compile", ModuleWrap::Compile);
-  Nan::SetPrototypeMethod(tpl, "instantiate", ModuleWrap::Instantiate);
-  Nan::SetPrototypeMethod(tpl, "evaluate", ModuleWrap::Evaluate);
-  Nan::SetPrototypeMethod(tpl, "getNamespace", ModuleWrap::GetNamespace);
-  Nan::SetPrototypeMethod(tpl, "getRequests", ModuleWrap::GetRequests);
-  Nan::SetPrototypeMethod(tpl, "resolveRequest", ModuleWrap::ResolveRequest);
-  Nan::SetPrototypeMethod(tpl, "isResolved", ModuleWrap::IsResolved);
-  Nan::Set(target, class_name, tpl->GetFunction());
+
+  tpl->InstanceTemplate()->SetInternalFieldCount(1);
+  tpl->InstanceTemplate()
+     ->SetAccessorProperty(New("status").ToLocalChecked(),
+                           New<FunctionTemplate>(ModuleWrap::GetStatus));
+  tpl->InstanceTemplate()
+     ->SetAccessorProperty(New("namespace").ToLocalChecked(),
+                           New<FunctionTemplate>(ModuleWrap::GetNamespace));
+  tpl->InstanceTemplate()
+     ->SetAccessorProperty(New("requests").ToLocalChecked(),
+                           New<FunctionTemplate>(ModuleWrap::GetRequests));
+
+  SetPrototypeMethod(tpl, "compile", ModuleWrap::Compile);
+  SetPrototypeMethod(tpl, "instantiate", ModuleWrap::Instantiate);
+  SetPrototypeMethod(tpl, "evaluate", ModuleWrap::Evaluate);
+  SetPrototypeMethod(tpl, "resolveRequest", ModuleWrap::ResolveRequest);
+  SetPrototypeMethod(tpl, "isResolved", ModuleWrap::IsResolved);
+
+  Local<v8::Function> module_ctor = tpl->GetFunction();
+  Set(module_ctor, New("kUncompiled").ToLocalChecked(), Nan::Null());
+#define ExportModuleStatusConstant(STATUS) \
+  Set(module_ctor, New(#STATUS).ToLocalChecked(), New(Module::STATUS))
+  ExportModuleStatusConstant(kUninstantiated);
+  ExportModuleStatusConstant(kInstantiating);
+  ExportModuleStatusConstant(kInstantiated);
+  ExportModuleStatusConstant(kEvaluating);
+  ExportModuleStatusConstant(kEvaluated);
+  ExportModuleStatusConstant(kErrored);
+#undef ExportModuleStatusConstant
+  Set(target, class_name, module_ctor);
 }
 NODE_MODULE(loader, InitAll)
