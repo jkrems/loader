@@ -159,6 +159,17 @@ public:
     info.GetReturnValue().Set(result);
   }
 
+  static NAN_METHOD(GetException) {
+    ModuleWrap* obj = ObjectWrap::Unwrap<ModuleWrap>(info.Holder());
+
+    Local<Module> module = Nan::New(obj->module_);
+    if (module->GetStatus() != Module::kErrored) {
+      return;
+    }
+    Local<Value> exception = module->GetException();
+    info.GetReturnValue().Set(exception);
+  }
+
   static NAN_METHOD(GetRequests) {
     ModuleWrap* obj = ObjectWrap::Unwrap<ModuleWrap>(info.Holder());
     Local<Module> module = Nan::New(obj->module_);
@@ -304,6 +315,9 @@ NAN_MODULE_INIT(InitAll) {
   tpl->InstanceTemplate()
      ->SetAccessorProperty(New("requests").ToLocalChecked(),
                            New<FunctionTemplate>(ModuleWrap::GetRequests));
+  tpl->InstanceTemplate()
+     ->SetAccessorProperty(New("exception").ToLocalChecked(),
+                           New<FunctionTemplate>(ModuleWrap::GetException));
 
   SetPrototypeMethod(tpl, "compile", ModuleWrap::Compile);
   SetPrototypeMethod(tpl, "instantiate", ModuleWrap::Instantiate);

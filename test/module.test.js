@@ -21,6 +21,7 @@ describe('Module', () => {
       { foo: 42, default: true },
       Object.assign({}, m.namespace)
     );
+    assert.equal(undefined, m.exception);
 
     const failing = new Module('file:///b.mjs');
     assert.equal(Module.kUncompiled, failing.status);
@@ -29,6 +30,7 @@ describe('Module', () => {
     const err = assert.throws(() => failing.evaluate());
     assert.equal('oops', err.message);
     assert.include('file:///b.mjs:1:7', err.stack);
+    assert.equal(err, failing.exception);
   });
 
   it('can be linked to other modules', () => {
