@@ -55,4 +55,26 @@ x + 2 * y;
     m.instantiate();
     assert.equal(3 + 2 * 4, m.evaluate());
   });
+
+  it('can be set from exports', () => {
+    const m = new Module('file:///lazy.mjs');
+    let called = false;
+    m.setLazyStaticExports(['x', 'y', 'default'], () => {
+      called = true;
+      return { x: 7, y: 11, default: 'ok' };
+    });
+
+    const proxy = new Module('file:///proxy.mjs');
+    proxy.compile('export * from "lazy"; export const proxied = true;');
+    proxy.resolveRequest('lazy', m);
+    proxy.instantiate();
+    assert.equal(false, called);
+    proxy.evaluate();
+    assert.equal(true, called);
+    assert.deepEqual(
+      { x: 7, y: 11, proxied: true },
+      Object.assign({}, proxy.namespace)
+    );
+    assert.equal('ok', m.namespace.default);
+  });
 });
