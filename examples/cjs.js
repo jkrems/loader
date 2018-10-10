@@ -1,3 +1,3 @@
 'use strict';
 
-module.exports = 42;
+module.exports = { n: 42 };
