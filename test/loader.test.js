@@ -1,5 +1,7 @@
 'use strict';
 
+const fs = require('fs');
+
 const assert = require('assertive');
 
 const { Loader } = require('../');
@@ -49,6 +51,19 @@ export const combined = [x, y.default].join(' ');
         l.importFromResolvedURL('file:///failing')
       );
       assert.equal(firstError, secondError);
+    });
+  });
+
+  describe('with defaults', () => {
+    let loader;
+    before('create loader', () => {
+      loader = new Loader();
+    });
+
+    it('can import a core module, including named exports', async () => {
+      const fsNamespace = await loader.importFromResolvedURL('node:fs');
+      assert.equal(fs, fsNamespace.default);
+      assert.equal(fs.readFile, fsNamespace.readFile);
     });
   });
 });
