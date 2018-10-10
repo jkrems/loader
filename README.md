@@ -66,13 +66,28 @@ Compile the given `source` as a module.
 
 ## Semantics
 
-The system is split into 3 separate pieces:
+### `node:` URL Scheme
+
+This scheme is used to address resources that aren't on disk
+but are compiled into the node binary: The built-in modules like "fs".
+
+**Example:** `node:fs`
+
+### `contentType: 'text/vnd.node.js'`
+
+Marks a resource that should be loaded as a node-style CommonJS module.
+The "content" of this resource is ignored by the loader itself,
+instead it will execute using the existing CommonJS module system.
+
+### Module Loading
+
+Module loading is split into three phases:
 
 1. Module resolution
 1. Resource fetching
 1. Module init
 
-### Module Resolution (`resolve`)
+#### Module Resolution (`resolve`)
 
 Given a `specifier: string` and `referrerURL: string`,
 provide a `url: string` or a set of potential `urls: string[]` of a resource:
@@ -84,7 +99,7 @@ const resolve: (specifier: string, referrerURL: string) => string | string[];
 If the resolution fails (e.g. because of an invalid URL),
 the function should throw.
 
-### Resource Fetching (`fetch`)
+#### Resource Fetching (`fetch`)
 
 Given a resource `url: string`,
 fetch the resource content and associated meta data.
@@ -103,7 +118,7 @@ const fetch: (url: string) => Resource;
 If fetching fails (e.g. because the resource cannot be found),
 the function should throw.
 
-### Module Init (`init`)
+#### Module Init (`init`)
 
 Given a `resource: Resource` and a `target: Module` module handle,
 initialize the `target`.
@@ -129,6 +144,16 @@ the function should throw.
   and provides a `Promise` for its completion.
 * During `LoadModuleJob` execution, the `resolve`, `fetch` and `init` hooks
   of the `Loader` will be called.
+
+### `reflect:` URL Scheme
+
+An interface that allows to manipulate the dynamic exports of a module.
+It is used to expose non-ESM modules inside of ESM modules.
+
+#### Examples
+
+* `reflect:node:fs`: The module that is used to set up the exports of node's
+  built-in `fs` module.
 
 ## Random Ideas
 
