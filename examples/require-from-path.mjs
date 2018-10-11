@@ -1,6 +1,5 @@
-import Module from 'module';
-// TODO: Use once this lands in a node 10 release
-// import { fileURLToPath as fromPath } from 'url';
+import { createRequireFromPath } from 'module';
+import { fileURLToPath } from 'url';
 
-const req = Module.createRequireFromPath(new URL(import.meta.url).pathname);
+const req = createRequireFromPath(fileURLToPath(import.meta.url));
 export default req('./cjs.js');
