@@ -12,6 +12,7 @@
       ],
       "conditions": [
         [
+          # TODO: https://github.com/nodejs/nan/pull/811#issuecomment-429367745
           '"<!(echo $V)" != "1"',
           {
             "cflags": [
