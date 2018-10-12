@@ -7,8 +7,7 @@ const path = require('path');
 const loader = require('../')
   .enableDynamicImport()
   .enableImportMeta()
-  .registerUnprefixedNodeCoreModules()
-  .addPackageLockToMap(require('../package-lock.json'));
+  .registerUnprefixedNodeCoreModules();
 
 loader
   .import(`file://${path.resolve(process.argv[2])}`)
