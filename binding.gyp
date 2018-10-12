@@ -10,6 +10,21 @@
       "include_dirs" : [
         "<!(node -e \"require('nan')\")",
       ],
+      "conditions": [
+        [
+          '"<!(echo $V)" != "1"',
+          {
+            "cflags": [
+              "-Wno-deprecated-declarations",
+            ],
+            "xcode_settings": {
+              "OTHER_CFLAGS": [
+                "-Wno-deprecated-declarations",
+              ],
+            },
+          },
+        ],
+      ],
     }
   ]
 }
