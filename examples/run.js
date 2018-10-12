@@ -2,10 +2,14 @@
 
 'use strict';
 
-require('../')
+const path = require('path');
+
+const loader = require('../')
   .enableDynamicImport()
   .enableImportMeta()
   .registerUnprefixedNodeCoreModules()
   .addPackageLockToMap(require('../package-lock.json'));
 
-import(process.argv[2]).then(console.log, console.error);
+loader
+  .import(`file://${path.resolve(process.argv[2])}`)
+  .then(console.log, console.error);

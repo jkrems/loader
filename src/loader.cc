@@ -11,9 +11,11 @@ using v8::MaybeLocal;
 using v8::Promise;
 using v8::Module;
 using v8::Object;
+using v8::Function;
+using v8::Persistent;
 
-Nan::Callback Loader::dynamic_import_callback;
-Nan::Callback Loader::import_meta_callback;
+Persistent<Function> Loader::dynamic_import_callback;
+Persistent<Function> Loader::import_meta_callback;
 
 NAN_MODULE_INIT(Loader::Init) {
   Nan::Export(target, "setDynamicImportCallback", Loader::SetDynamicImportCallback);
@@ -35,7 +37,8 @@ MaybeLocal<Promise> Loader::ImportModuleDynamically(
     referrer->GetResourceName(),
     Nan::New<v8::Boolean>(options->Length() > 0)
   };
-  Local<Value> result = Nan::Call(dynamic_import_callback, 3, args).ToLocalChecked();
+  Local<Function> callback = Local<Function>::New(iso, dynamic_import_callback);
+  Local<Value> result = callback->CallAsFunction(context, v8::Undefined(iso), 3, args).ToLocalChecked();
   return result.As<Promise>();
 }
 
@@ -43,7 +46,7 @@ NAN_METHOD(Loader::SetDynamicImportCallback) {
   Isolate* iso = info.GetIsolate();
 
   Local<Value> callback = info[0];
-  dynamic_import_callback.Reset(callback.As<v8::Function>());
+  dynamic_import_callback.Reset(iso, callback.As<v8::Function>());
   iso->SetHostImportModuleDynamicallyCallback(Loader::ImportModuleDynamically);
 }
 
@@ -59,13 +62,14 @@ void Loader::InitImportMeta(Local<Context> context,
     obj->handle(),
     meta
   };
-  Nan::Call(import_meta_callback, 2, args).ToLocalChecked();
+  Local<Function> callback = Local<Function>::New(iso, import_meta_callback);
+  callback->CallAsFunction(context, v8::Undefined(iso), 2, args).ToLocalChecked();
 }
 
 NAN_METHOD(Loader::SetInitImportMetaCallback) {
   Isolate* iso = info.GetIsolate();
 
   Local<Value> callback = info[0];
-  import_meta_callback.Reset(callback.As<v8::Function>());
+  import_meta_callback.Reset(iso, callback.As<v8::Function>());
   iso->SetHostInitializeImportMetaObjectCallback(Loader::InitImportMeta);
 }

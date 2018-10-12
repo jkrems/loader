@@ -21,8 +21,8 @@ public:
   static NAN_MODULE_INIT(Init);
 
 private:
-  static Nan::Callback dynamic_import_callback;
-  static Nan::Callback import_meta_callback;
+  static v8::Persistent<v8::Function> dynamic_import_callback;
+  static v8::Persistent<v8::Function> import_meta_callback;
 };
 
 #endif // SRC_LOADER_H_
