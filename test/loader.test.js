@@ -1,10 +1,11 @@
 'use strict';
 
 const fs = require('fs');
+const { pathToFileURL } = require('url');
 
 const assert = require('assertive');
 
-const { Loader } = require('../');
+const { Loader, enableImportMeta, enableDynamicImport } = require('../');
 
 describe('Loader', () => {
   describe('with simple mocked logic', () => {
@@ -64,6 +65,47 @@ export const combined = [x, y.default].join(' ');
       const fsNamespace = await loader.importFromResolvedURL('node:fs');
       assert.equal(fs, fsNamespace.default);
       assert.equal(fs.readFile, fsNamespace.readFile);
+    });
+
+    describe('with import.meta & import()', () => {
+      before(() => {
+        enableDynamicImport();
+        enableImportMeta();
+      });
+
+      it('can load import.meta', async () => {
+        const metaURL = pathToFileURL(
+          require.resolve('../examples/import-meta.mjs')
+        ).href;
+        const metaNamespace = await loader.importFromResolvedURL(metaURL);
+        assert.deepEqual(
+          {
+            url: metaURL,
+          },
+          metaNamespace.default
+        );
+      });
+
+      // This test case currently segfaults when trying to call importSibling
+      xit('can use dynamic import to load import.meta', async () => {
+        const metaURL = pathToFileURL(
+          require.resolve('../examples/import-meta.mjs')
+        ).href;
+        const wrapURL = pathToFileURL(
+          require.resolve('../examples/import-dynamic-sibling.mjs')
+        );
+        const { importSibling } = await loader.importFromResolvedURL(
+          wrapURL.toString()
+        );
+        assert.hasType(Function, importSibling);
+        const metaNamespace = await importSibling('./import-meta.mjs');
+        assert.deepEqual(
+          {
+            url: metaURL,
+          },
+          metaNamespace.default
+        );
+      });
     });
   });
 });
