@@ -17,11 +17,8 @@ Design constraints, in order of importance:
 - [x] Load cyclic modules.
 - [x] `import.meta.url` in modules.
 - [x] Dynamic `import()`.
-- [ ] Try how much code would work with something like this.
-- [ ] Define semantics for bare specifiers.
-- [ ] Define "mime type" guards.
-- [ ] Define node core interop.
-- [ ] Define userland CJS interop.
+- [ ] Handle multiple loaders / contexts.
+- [ ] Don't SEGFAULT (and add DCHECKs).
 
 ## Usage
 
@@ -178,10 +175,7 @@ It is used to expose non-ESM modules inside of ESM modules.
 * `reflect:node:fs`: The module that is used to set up the exports of node's
   built-in `fs` module.
 
-## Random Ideas
-
-* Use `package-lock.json` to resolve bare specifiers.
-
 ## Links
 
+* [Official nodejs plan for modules](https://github.com/nodejs/modules/blob/master/doc/plan-for-new-modules-implementation.md)
 * [`package-name-maps`](https://github.com/domenic/package-name-maps/blob/url-based/README.md#import-urls)
