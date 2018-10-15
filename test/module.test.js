@@ -22,15 +22,56 @@ describe('Module', () => {
       Object.assign({}, m.namespace)
     );
     assert.equal(undefined, m.exception);
+  });
 
-    const failing = new Module('file:///b.mjs');
-    assert.equal(Module.kUncompiled, failing.status);
-    failing.compile('throw new Error("oops");');
-    failing.instantiate();
-    const err = assert.throws(() => failing.evaluate());
-    assert.equal('oops', err.message);
-    assert.include('file:///b.mjs:1:7', err.stack);
-    assert.equal(err, failing.exception);
+  describe('.exception', () => {
+    it('exposes compilation error', () => {
+      const m = new Module('file:///a.mjs');
+      const err = assert.throws(() => m.compile('const not valid'));
+      assert.equal('SyntaxError', err.name);
+      assert.equal(err, m.exception);
+      assert.equal(Module.kErrored, m.status);
+    });
+
+    it('exposes errors during evaluation', () => {
+      const failing = new Module('file:///b.mjs');
+      assert.equal(Module.kUncompiled, failing.status);
+      failing.compile('throw new Error("oops");');
+      failing.instantiate();
+      const err = assert.throws(() => failing.evaluate());
+      assert.equal('oops', err.message);
+      assert.include('file:///b.mjs:1:7', err.stack);
+      assert.equal(err, failing.exception);
+      assert.equal(Module.kErrored, failing.status);
+    });
+
+    it('exposes errors in dependencies', () => {
+      const dep = new Module('file:///dep.mjs');
+      dep.compile('throw new Error("dep error");');
+      dep.instantiate();
+
+      const m = new Module('file:///a.mjs');
+      m.compile('import "dep"');
+      m.resolveRequest('dep', dep);
+      m.instantiate();
+      const err = assert.throws(() => m.evaluate());
+      assert.equal('dep error', err.message);
+      assert.equal(err, m.exception);
+      assert.equal(Module.kErrored, m.status);
+    });
+
+    it('exposes link errors', () => {
+      const dep = new Module('file:///dep.mjs');
+      dep.compile('');
+      dep.instantiate();
+
+      const m = new Module('file:///a.mjs');
+      m.compile('import { someExport } from "dep-key"');
+      m.resolveRequest('dep-key', dep);
+      const err = assert.throws(() => m.instantiate());
+      assert.include('someExport', err.message);
+      assert.include('dep-key', err.message);
+    });
   });
 
   it('can be linked to other modules', () => {

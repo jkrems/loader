@@ -40,6 +40,7 @@ private:
 
   v8::Persistent<v8::Module> module_;
   v8::Persistent<v8::String> url_;
+  v8::Persistent<v8::Value> early_exception_;
   // bool linked_ = false;
   std::unordered_map<std::string, v8::Persistent<v8::Object>> resolve_cache_;
   v8::Persistent<v8::Context> context_;

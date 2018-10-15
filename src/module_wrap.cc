@@ -122,6 +122,7 @@ NAN_METHOD(ModuleWrap::Compile) {
       // CHECK(!try_catch.Exception().IsEmpty());
       // AppendExceptionLine(env, try_catch.Exception(), try_catch.Message(),
       //                     ErrorHandlingMode::MODULE_ERROR);
+      obj->early_exception_.Reset(isolate, try_catch.Exception());
       try_catch.ReThrow();
       return;
     }
@@ -150,15 +151,15 @@ MaybeLocal<Module> ModuleWrap::ResolveCallback(Local<Context> context,
 
 NAN_METHOD(ModuleWrap::Instantiate) {
   ModuleWrap* obj = ObjectWrap::Unwrap<ModuleWrap>(info.Holder());
+  Isolate* isolate = info.GetIsolate();
 
   Local<Module> module = Nan::New(obj->module_);
   Local<Context> context = Nan::New(obj->context_);
 
-  TryCatch try_catch(info.GetIsolate());
+  TryCatch try_catch(isolate);
 
   v8::Maybe<bool> ok = module->InstantiateModule(context, ResolveCallback);
   if (!ok.FromMaybe(false)) {
-    printf("Failed to instantiate module\n");
     // CHECK(try_catch.HasCaught());
     // CHECK(!try_catch.Message().IsEmpty());
     // CHECK(!try_catch.Exception().IsEmpty());
@@ -200,6 +201,15 @@ NAN_METHOD(ModuleWrap::GetNamespace) {
 
 NAN_METHOD(ModuleWrap::GetException) {
   ModuleWrap* obj = ObjectWrap::Unwrap<ModuleWrap>(info.Holder());
+
+  if (obj->module_.IsEmpty()) {
+    Local<Value> early_exception = Nan::New(obj->early_exception_);
+    if (early_exception.IsEmpty()) {
+      return;
+    }
+    info.GetReturnValue().Set(early_exception);
+    return;
+  }
 
   Local<Module> module = Nan::New(obj->module_);
   if (module->GetStatus() != Module::kErrored) {
@@ -253,7 +263,11 @@ NAN_METHOD(ModuleWrap::GetStatus) {
 
   Local<Module> module = Nan::New(obj->module_);
   if (module.IsEmpty()) {
-    info.GetReturnValue().SetNull();
+    if (obj->early_exception_.IsEmpty()) {
+      info.GetReturnValue().SetNull();
+    } else {
+      info.GetReturnValue().Set(Module::kErrored);
+    }
     return;
   }
 
