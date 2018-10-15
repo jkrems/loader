@@ -26,13 +26,15 @@ Design constraints, in order of importance:
 ## Usage
 
 ```js
-const loader = require('hackable-loader');
+const Loader = require('hackable-loader');
 
-loader
+Loader
   // Overwrite dynamic import to use this loader.
-  .enableDynamicImport();
+  .enableDynamicImport()
   // Overwrite import.meta to use this loader.
   .enableImportMeta();
+
+Loader.current
   // Add support for resolving 'fs' etc.
   .registerUnprefixedNodeCoreModules();
 
@@ -43,15 +45,15 @@ import('./module.mjs')
 
 ### API
 
-#### `enableDynamicImport`
+#### `Loader.enableDynamicImport`
 
 Configure `import()` of the active `v8::Isolate` to use this loader.
 
-#### `enableImportMeta`
+#### `Loader.enableImportMeta`
 
 Configure `import.meta` of the active `v8::Isolate` to use this loader.
 
-#### `registerUnprefixedNodeCoreModules(loader = getLoader)`
+#### `loader.registerUnprefixedNodeCoreModules()`
 
 Add resolution of node's built-in modules like `'fs'`.
 Otherwise they have to be imported using the `node:` URL scheme:
@@ -63,6 +65,9 @@ import { readFile } from 'node:fs';
 // With:
 import { readFile } from 'fs';
 ```
+
+Since this affects the resolution algorithm,
+this has to be applied on a per-loader basis.
 
 #### `new Module(url: string)`
 

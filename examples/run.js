@@ -4,11 +4,11 @@
 
 const path = require('path');
 
-const loader = require('../')
+const Loader = require('../')
   .enableDynamicImport()
-  .enableImportMeta()
-  .registerUnprefixedNodeCoreModules();
+  .enableImportMeta();
 
-loader
+Loader.current
+  .registerUnprefixedNodeCoreModules()
   .import(`file://${path.resolve(process.argv[2])}`)
   .then(console.log, console.error);
