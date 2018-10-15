@@ -27,6 +27,7 @@ Design constraints, in order of importance:
 
 ```js
 const Loader = require('hackable-loader');
+const registerUnprefixedNodeCoreModules = require('hackable-loader/resolve/node-core');
 
 Loader
   // Overwrite dynamic import to use this loader.
@@ -34,9 +35,8 @@ Loader
   // Overwrite import.meta to use this loader.
   .enableImportMeta();
 
-Loader.current
-  // Add support for resolving 'fs' etc.
-  .registerUnprefixedNodeCoreModules();
+// Add support for resolving 'fs' etc.
+registerUnprefixedNodeCoreModules(Loader.current);
 
 // Load an entry point.
 import('./module.mjs')
@@ -53,7 +53,7 @@ Configure `import()` of the active `v8::Isolate` to use this loader.
 
 Configure `import.meta` of the active `v8::Isolate` to use this loader.
 
-#### `loader.registerUnprefixedNodeCoreModules()`
+#### `registerUnprefixedNodeCoreModules(loader)`
 
 Add resolution of node's built-in modules like `'fs'`.
 Otherwise they have to be imported using the `node:` URL scheme:

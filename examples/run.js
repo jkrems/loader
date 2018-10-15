@@ -8,7 +8,8 @@ const Loader = require('../')
   .enableDynamicImport()
   .enableImportMeta();
 
-Loader.current
-  .registerUnprefixedNodeCoreModules()
+const registerUnprefixedNodeCoreModules = require('../resolve/node-core');
+
+registerUnprefixedNodeCoreModules(Loader.current)
   .import(`file://${path.resolve(process.argv[2])}`)
   .then(console.log, console.error);

@@ -50,7 +50,9 @@
   },
   "files": [
     "*.js",
-    "lib"
+    "lib",
+    "resolve",
+    "src"
   ],
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
