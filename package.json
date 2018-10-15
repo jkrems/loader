@@ -1,7 +1,7 @@
 {
-  "name": "loader",
+  "name": "hackable-loader",
   "version": "0.0.0",
-  "description": "Loader",
+  "description": "A flexible userland ES module loader implementation",
   "license": "BSD-3-Clause",
   "main": "lib/index.js",
   "homepage": "https://github.com/jkrems/loader",

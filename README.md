@@ -1,4 +1,4 @@
-# `loader`
+# `hackable-loader`
 
 **This is an experiment. Nobody should run this in production.**
 
@@ -26,22 +26,15 @@ Design constraints, in order of importance:
 ## Usage
 
 ```js
-const loader = require('@jkrems/loader');
+const loader = require('hackable-loader');
 
-// Overwrite dynamic import to use this loader.
-loader.enableDynamicImport();
-
-// Overwrite import.meta to use this loader.
-loader.enableImportMeta();
-
-// Add node-core: URL scheme
-loader.registerNodeCoreURLScheme();
-
-// Add cjs-bridge: URL scheme
-loader.registerCJSBridgeScheme();
-
-// Add node core modules to the module map
-loader.registerUnprefixedNodeCoreModules();
+loader
+  // Overwrite dynamic import to use this loader.
+  .enableDynamicImport();
+  // Overwrite import.meta to use this loader.
+  .enableImportMeta();
+  // Add support for resolving 'fs' etc.
+  .registerUnprefixedNodeCoreModules();
 
 // Load an entry point.
 import('./module.mjs')
@@ -50,7 +43,30 @@ import('./module.mjs')
 
 ### API
 
+#### `enableDynamicImport`
+
+Configure `import()` of the active `v8::Isolate` to use this loader.
+
+#### `enableImportMeta`
+
+Configure `import.meta` of the active `v8::Isolate` to use this loader.
+
+#### `registerUnprefixedNodeCoreModules(loader = getLoader)`
+
+Add resolution of node's built-in modules like `'fs'`.
+Otherwise they have to be imported using the `node:` URL scheme:
+
+```js
+// Without registerUnprefixedNodeCoreModules:
+import { readFile } from 'node:fs';
+
+// With:
+import { readFile } from 'fs';
+```
+
 #### `new Module(url: string)`
+
+The `Module` class is the JavaScript representation of a `v8::Module`.
 
 ##### `module.compile(source: string): void`
 
@@ -78,6 +94,9 @@ but are compiled into the node binary: The built-in modules like "fs".
 Marks a resource that should be loaded as a node-style CommonJS module.
 The "content" of this resource is ignored by the loader itself,
 instead it will execute using the existing CommonJS module system.
+
+If the `contentType` has `sideEffects=false` in its parameters,
+we assume that we can run the module ahead of time to get its exports.
 
 ### Module Loading
 
@@ -108,7 +127,6 @@ fetch the resource content and associated meta data.
 type Resource = {
   bytes?: Buffer,
   contentType: string,
-  // Needed..?
   contentTypeParameters?: string,
 };
 
