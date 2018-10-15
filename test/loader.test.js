@@ -86,8 +86,7 @@ export const combined = [x, y.default].join(' ');
         );
       });
 
-      // This test case currently segfaults when trying to call importSibling
-      xit('can use dynamic import to load import.meta', async () => {
+      it('can use dynamic import to load import.meta', async () => {
         const metaURL = pathToFileURL(
           require.resolve('../examples/import-meta.mjs')
         ).href;

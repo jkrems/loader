@@ -38,8 +38,14 @@ MaybeLocal<Promise> Loader::ImportModuleDynamically(
     Nan::New<v8::Boolean>(options->Length() > 0)
   };
   Local<Function> callback = Local<Function>::New(iso, dynamic_import_callback);
-  Local<Value> result = callback->CallAsFunction(context, v8::Undefined(iso), 3, args).ToLocalChecked();
-  return result.As<Promise>();
+  MaybeLocal<Value> maybe_result =
+      callback->CallAsFunction(context, v8::Undefined(iso), 3, args);
+  Local<Value> result;
+  if (!maybe_result.ToLocal(&result)) {
+    // TODO: Properly reject
+    return MaybeLocal<Promise>();
+  }
+  return handle_scope.Escape(result.As<Promise>());
 }
 
 NAN_METHOD(Loader::SetDynamicImportCallback) {
