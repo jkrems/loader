@@ -1,5 +1,7 @@
 'use strict';
 
+const vm = require('vm');
+
 const assert = require('assertive');
 
 const Module = require('../lib/module');
@@ -117,5 +119,28 @@ x + 2 * y;
       Object.assign({}, proxy.namespace)
     );
     assert.equal('ok', m.namespace.default);
+  });
+
+  describe('in 2nd context', () => {
+    const ctxSandbox = { secretGlobal: 42 };
+    const ctx = vm.createContext(ctxSandbox);
+    const ctxGlobal = vm.runInContext('this', ctx);
+    const exportSecretGlobalType = 'export default typeof secretGlobal;';
+
+    it('does not use the context by default', () => {
+      const m = new Module('file:///a.mjs');
+      m.compile(exportSecretGlobalType);
+      m.instantiate();
+      m.evaluate();
+      assert.equal('undefined', m.namespace.default);
+    });
+
+    it('can run a module in custom context', () => {
+      const m = new Module('file:///a.mjs', ctxGlobal);
+      m.compile(exportSecretGlobalType);
+      m.instantiate();
+      m.evaluate();
+      assert.equal('number', m.namespace.default);
+    });
   });
 });

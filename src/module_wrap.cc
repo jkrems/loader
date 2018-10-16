@@ -81,12 +81,25 @@ NAN_METHOD(ModuleWrap::New) {
     return;
   }
   Local<String> url = info[0].As<String>();
+
+  Local<Context> context;
+  if (info.Length() < 2 || info[1]->IsUndefined()) {
+    context = info.This()->CreationContext();
+  } else if (info[1]->IsObject()) {
+    // TODO: Find a good way of actually passing a context
+    context = info[1].As<Object>()->CreationContext();
+  } else {
+    Nan::ThrowTypeError(
+        "Expected 2nd argument (context) to be an object if present");
+    return;
+  }
+
   Nan::Set(that, Nan::New("url").ToLocalChecked(), url);
 
   ModuleWrap* obj = new ModuleWrap();
   obj->Wrap(that);
   obj->url_.Reset(info.GetIsolate(), url);
-  obj->context_.Reset(info.GetIsolate(), info.Holder()->CreationContext());
+  obj->context_.Reset(info.GetIsolate(), context);
 
   info.GetReturnValue().Set(that);
 }
@@ -149,7 +162,6 @@ MaybeLocal<Module> ModuleWrap::ResolveCallback(Local<Context> context,
   Local<Object> resolve_object =
       obj->resolve_cache_[specifier_std].Get(context->GetIsolate());
   ModuleWrap* module = ObjectWrap::Unwrap<ModuleWrap>(resolve_object);
-  // TODO: CHECK that module has been compiled at the very least
   return module->module_.Get(context->GetIsolate());
 }
 
