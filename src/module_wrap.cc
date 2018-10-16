@@ -100,7 +100,7 @@ NAN_METHOD(ModuleWrap::Compile) {
   }
   Local<String> source_text = info[0].As<String>();
 
-  Local<Context> context = info.Holder()->CreationContext();
+  Local<Context> context = Nan::New(obj->context_);
   Isolate* isolate = context->GetIsolate();
   Local<Integer> line_offset = Integer::New(isolate, 0);
   Local<Integer> column_offset = Integer::New(isolate, 0);
@@ -134,7 +134,6 @@ NAN_METHOD(ModuleWrap::Compile) {
   }
 
   obj->module_.Reset(isolate, module);
-  obj->context_.Reset(isolate, context);
   module_map.emplace(module->GetIdentityHash(), obj);
 
   info.GetReturnValue().Set(info.Holder());
