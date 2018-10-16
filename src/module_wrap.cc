@@ -1,4 +1,5 @@
 #include "module_wrap.h"
+#include <assert.h>
 
 using v8::Local;
 using v8::Module;
@@ -72,19 +73,20 @@ ModuleWrap* ModuleWrap::GetFromModule(Local<Module> module) {
 }
 
 NAN_METHOD(ModuleWrap::New) {
-  // CHECK(info.IsConstructCall());
+  assert(info.IsConstructCall());
   Local<Object> that = info.This();
 
-  // CHECK(info[0]->IsString());
+  if(!info[0]->IsString()) {
+    Nan::ThrowTypeError("Expected first argument (url) to be a string");
+    return;
+  }
   Local<String> url = info[0].As<String>();
   Nan::Set(that, Nan::New("url").ToLocalChecked(), url);
 
   ModuleWrap* obj = new ModuleWrap();
   obj->Wrap(that);
   obj->url_.Reset(info.GetIsolate(), url);
-  // obj->context_.Reset(isolate, info.context);
-
-  // env->module_map.emplace(module->GetIdentityHash(), obj);
+  obj->context_.Reset(info.GetIsolate(), info.Holder()->CreationContext());
 
   info.GetReturnValue().Set(that);
 }
@@ -92,7 +94,10 @@ NAN_METHOD(ModuleWrap::New) {
 NAN_METHOD(ModuleWrap::Compile) {
   ModuleWrap* obj = ObjectWrap::Unwrap<ModuleWrap>(info.Holder());
 
-  // CHECK(info[0]->IsString());
+  if(!info[0]->IsString()) {
+    Nan::ThrowTypeError("Expected first argument (source) to be a string");
+    return;
+  }
   Local<String> source_text = info[0].As<String>();
 
   Local<Context> context = info.Holder()->CreationContext();
@@ -117,9 +122,9 @@ NAN_METHOD(ModuleWrap::Compile) {
     Context::Scope context_scope(context);
     ScriptCompiler::Source source(source_text, origin);
     if (!ScriptCompiler::CompileModule(isolate, &source).ToLocal(&module)) {
-      // CHECK(try_catch.HasCaught());
-      // CHECK(!try_catch.Message().IsEmpty());
-      // CHECK(!try_catch.Exception().IsEmpty());
+      assert(try_catch.HasCaught());
+      assert(!try_catch.Message().IsEmpty());
+      assert(!try_catch.Exception().IsEmpty());
       // AppendExceptionLine(env, try_catch.Exception(), try_catch.Message(),
       //                     ErrorHandlingMode::MODULE_ERROR);
       obj->early_exception_.Reset(isolate, try_catch.Exception());
@@ -160,9 +165,9 @@ NAN_METHOD(ModuleWrap::Instantiate) {
 
   v8::Maybe<bool> ok = module->InstantiateModule(context, ResolveCallback);
   if (!ok.FromMaybe(false)) {
-    // CHECK(try_catch.HasCaught());
-    // CHECK(!try_catch.Message().IsEmpty());
-    // CHECK(!try_catch.Exception().IsEmpty());
+    assert(try_catch.HasCaught());
+    assert(!try_catch.Message().IsEmpty());
+    assert(!try_catch.Exception().IsEmpty());
     // AppendExceptionLine(env, try_catch.Exception(), try_catch.Message(),
     //                     ErrorHandlingMode::MODULE_ERROR);
     try_catch.ReThrow();
@@ -236,12 +241,12 @@ NAN_METHOD(ModuleWrap::GetRequests) {
 NAN_METHOD(ModuleWrap::ResolveRequest) {
   ModuleWrap* obj = ObjectWrap::Unwrap<ModuleWrap>(info.Holder());
 
-  // CHECK(info[0]->IsString());
+  assert(info[0]->IsString());
   Local<String> specifier = info[0].As<String>();
   Nan::Utf8String specifier_utf8(specifier);
   std::string specifier_std(*specifier_utf8, specifier_utf8.length());
 
-  // CHECK(info[1]->IsObject());
+  assert(info[1]->IsObject());
   Local<Object> resolved = info[1].As<Object>();
 
   obj->resolve_cache_[specifier_std].Reset(info.GetIsolate(), resolved);
@@ -250,7 +255,7 @@ NAN_METHOD(ModuleWrap::ResolveRequest) {
 NAN_METHOD(ModuleWrap::IsResolved) {
   ModuleWrap* obj = ObjectWrap::Unwrap<ModuleWrap>(info.Holder());
 
-  // CHECK(info[0]->IsString());
+  assert(info[0]->IsString());
   Local<String> specifier = info[0].As<String>();
   Nan::Utf8String specifier_utf8(specifier);
   std::string specifier_std(*specifier_utf8, specifier_utf8.length());

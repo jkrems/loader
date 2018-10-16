@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const { pathToFileURL } = require('url');
+const vm = require('vm');
 
 const assert = require('assertive');
 
@@ -100,6 +101,34 @@ export const combined = [x, y.default].join(' ');
           },
           metaNamespace.default
         );
+      });
+
+      it('can use dynamic import from a Function or vm.run', async () => {
+        const metaURL = pathToFileURL(
+          require.resolve('../examples/import-meta.mjs')
+        ).href;
+
+        {
+          const f = new Function('url', 'return import(url);');
+          const fromFunction = await f(metaURL);
+          assert.deepEqual(
+            {
+              url: metaURL,
+            },
+            fromFunction.default
+          );
+        }
+
+        {
+          const importSource = `import(${JSON.stringify(metaURL)})`;
+          const fromVM = await vm.runInThisContext(importSource);
+          assert.deepEqual(
+            {
+              url: metaURL,
+            },
+            fromVM.default
+          );
+        }
       });
     });
   });
